@@ -434,6 +434,73 @@ class TRIOS(MyApplication):
                 soak_time_value = step.eval(specimen=specimen)
                 logger.info('step %s setting soak time value %f',step.label,soak_time_value)
                 write_float_to_input(soak_time_edit,soak_time_value)
+            
+            elif step.type_ == STEP_TYPE.PRESHEAR_PROCEDURE:
+                # Ensure preshear is enabled
+                preshear_options = step_top_parent.descendants(
+                    title="Preshear options", 
+                    control_type="Group",
+                )[0]
+                preshear_checkbox = next(
+                    checkbox
+                    for checkbox in preshear_options.children(control_type="CheckBox")
+                    if checkbox.automation_id() == "PreshearChk"
+                )
+                if preshear_checkbox.get_toggle_state() != 1:
+                    preshear_checkbox.click_input()
+                
+                preshear_super_combo = preshear_options.children(control_type="ComboBox")[0]
+                preshear_super_combo.click_input()
+                time.sleep(0.5)  # Wait for dropdown to populate
+                
+                preshear_procedure_item_text = preshear_super_combo.descendants(
+                    title=step.eval(specimen=specimen), control_type="Text"
+                )[0]
+                preshear_procedure_item = preshear_procedure_item_text.parent()
+                preshear_procedure_item_text.click_input()
+            
+            elif step.type_ == STEP_TYPE.PRESHEAR_VALUE:
+                # Ensure preshear is enabled
+                preshear_options = step_top_parent.descendants(
+                    title="Preshear options", 
+                    control_type="Group",
+                )[0]
+                preshear_checkbox = next(
+                    checkbox
+                    for checkbox in preshear_options.children(control_type="CheckBox")
+                    if checkbox.automation_id() == "PreshearChk"
+                )
+                if preshear_checkbox.get_toggle_state() != 1:
+                    preshear_checkbox.click_input()
+                
+                preshear_super_combo = preshear_options.children(control_type="ComboBox")[0]
+                preshear_procedure_item = preshear_super_combo.descendants(control_type="Text")[0].parent()
+                preshear_value_edit = preshear_procedure_item.children(control_type="Edit")[0]
+                preshear_value_edit.draw_outline("green")
+                set_edit_float_to_input(preshear_value_edit, step.eval(specimen=specimen))
+            
+            elif step.type_ == STEP_TYPE.PRESHEAR_DURATION:
+                # Ensure preshear is enabled
+                preshear_options = step_top_parent.descendants(
+                    title="Preshear options", 
+                    control_type="Group",
+                )[0]
+                preshear_checkbox = next(
+                    checkbox
+                    for checkbox in preshear_options.children(control_type="CheckBox")
+                    if checkbox.automation_id() == "PreshearChk"
+                )
+                if preshear_checkbox.get_toggle_state() != 1:
+                    preshear_checkbox.click_input()
+                
+                duration_custom = next(
+                    custom
+                    for custom in preshear_options.descendants(control_type="Custom")
+                    if custom.automation_id() == "ProcedurePreshearTime"
+                )
+                duration_edit = duration_custom.descendants(control_type="Edit")[0]
+                write_float_to_input(duration_edit, step.eval(specimen=specimen))
+            
             else:
                 raise ValueError(f'step type {step.type_} unknown')
 
