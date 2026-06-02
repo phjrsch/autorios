@@ -423,6 +423,17 @@ class TRIOS(MyApplication):
                 motor_rotation_value = step.eval(specimen=specimen)
                 logger.info('step %s superimposing motor rotation value %f',step.label,motor_rotation_value)
                 write_float_to_input(motor_rotation_edit,motor_rotation_value)
+            elif step.type_ == STEP_TYPE.SOAK_TIME:
+                step_env_control = step_top_parent.descendants(title="Environmental Control", control_type="Group")[0]
+                soak_time_block = next(
+                        custon for custon in step_env_control.descendants(control_type="Custom")
+                        if custon.automation_id() == "SoakTimeBlock"
+                )
+                soak_time_edit = soak_time_block.children(control_type="Edit")[0]
+                soak_time_edit.draw_outline()
+                soak_time_value = step.eval(specimen=specimen)
+                logger.info('step %s setting soak time value %f',step.label,soak_time_value)
+                write_float_to_input(soak_time_edit,soak_time_value)
             else:
                 raise ValueError(f'step type {step.type_} unknown')
 
